@@ -1,11 +1,8 @@
 import os
-from dotenv import load_dotenv
 import streamlit as st
 import requests
 from newspaper import Article
 from premai import Prem
-
-load_dotenv()  # Load environment variables from .env file
 
 # Retrieve API keys from environment variables
 API_KEY = os.getenv("PREM_API_KEY")
