@@ -2,3 +2,4 @@ streamlit
 requests
 newspaper3k
 premai
+lxml
