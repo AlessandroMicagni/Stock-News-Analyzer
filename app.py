@@ -3,6 +3,8 @@ import streamlit as st
 import requests
 from newspaper import Article
 from premai import Prem
+import nltk
+nltk.download('punkt')
 
 # Retrieve API keys from environment variables
 API_KEY = os.getenv("PREM_API_KEY")

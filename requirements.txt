@@ -1,5 +1,11 @@
+beautifulsoup4
+cssselect
+nltk
+pillow
+tqdm
+feedparser
+lxml==4.9.3
+newspaper3k==0.2.8
 streamlit
 requests
-newspaper3k
 premai
-lxml
