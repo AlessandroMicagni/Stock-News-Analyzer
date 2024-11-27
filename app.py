@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 import requests
 from newspaper import Article
@@ -6,18 +5,18 @@ from premai import Prem
 import nltk
 nltk.download('punkt')
 
-# Retrieve API keys from environment variables
-API_KEY = os.getenv("PREM_API_KEY")
-PROJECT_ID = os.getenv("PREM_PROJECT_ID")
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+# Retrieve API keys from Streamlit secrets
+API_KEY = st.secrets["PREM_API_KEY"]
+PROJECT_ID = st.secrets["PREM_PROJECT_ID"]
+NEWS_API_KEY = st.secrets["NEWS_API_KEY"]
 
 # Check if API keys are retrieved successfully
 if not API_KEY:
-    st.error("PREM_API_KEY environment variable is not set.")
+    st.error("PREM_API_KEY is not set.")
 if not PROJECT_ID:
-    st.error("PREM_PROJECT_ID environment variable is not set.")
+    st.error("PREM_PROJECT_ID is not set.")
 if not NEWS_API_KEY:
-    st.error("NEWS_API_KEY environment variable is not set.")
+    st.error("NEWS_API_KEY is not set.")
 
 # Initialize Prem client
 client = Prem(api_key=API_KEY)
