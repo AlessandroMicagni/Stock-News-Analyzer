@@ -5,7 +5,7 @@ from premai import Prem
 import nltk
 from datetime import datetime, timedelta
 
-nltk.download('punkt')
+nltk.download('punkt', quiet=True)
 
 # Retrieve API keys from Streamlit secrets
 API_KEY = st.secrets["PREM_API_KEY"]
