@@ -4,6 +4,7 @@ from newspaper import Article
 from premai import Prem
 import nltk
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
 
 nltk.download('punkt', quiet=True)
 

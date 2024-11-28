@@ -9,3 +9,4 @@ cssselect==1.2.0
 pillow==9.5.0
 tqdm==4.65.0
 feedparser==6.0.10
+beautifulsoup4==4.12.2
