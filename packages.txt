@@ -1,5 +1,11 @@
-libjpeg-dev
+libxml2-dev
+libxslt-dev
 zlib1g-dev
+libffi-dev
+libssl-dev
+python3-dev
+build-essential
+libjpeg-dev
 libpng-dev
 libtiff-dev
 libfreetype6-dev
