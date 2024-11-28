@@ -3,6 +3,8 @@ import requests
 from newspaper import Article
 from premai import Prem
 import nltk
+from datetime import datetime, timedelta
+
 nltk.download('punkt')
 
 # Retrieve API keys from Streamlit secrets
@@ -10,21 +12,22 @@ API_KEY = st.secrets["PREM_API_KEY"]
 PROJECT_ID = st.secrets["PREM_PROJECT_ID"]
 NEWS_API_KEY = st.secrets["NEWS_API_KEY"]
 
-# Check if API keys are retrieved successfully
-if not API_KEY:
-    st.error("PREM_API_KEY is not set.")
-if not PROJECT_ID:
-    st.error("PREM_PROJECT_ID is not set.")
-if not NEWS_API_KEY:
-    st.error("NEWS_API_KEY is not set.")
-
 # Initialize Prem client
 client = Prem(api_key=API_KEY)
 
 # Function to search for financial news
-def search_financial_news(company_name):
-    keywords = f"{company_name} earnings OR revenue OR profit OR loss OR financial results OR stock OR shares"
-    url = f"https://newsapi.org/v2/everything?q={keywords}&sortBy=publishedAt&language=en&apiKey={NEWS_API_KEY}"
+def search_financial_news(company_name, company_ticker):
+    # Use the company's name and ticker symbol in the search
+    keywords = f'"{company_name}" OR {company_ticker} AND (earnings OR revenue OR profit OR loss OR "financial results" OR stock OR shares)'
+    from_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')  # Last 7 days
+    url = (
+        f"https://newsapi.org/v2/everything?"
+        f"q={keywords}&"
+        f"from={from_date}&"
+        f"sortBy=publishedAt&"
+        f"language=en&"
+        f"apiKey={NEWS_API_KEY}"
+    )
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -40,6 +43,9 @@ def scrape_news(url):
         article = Article(url)
         article.download()
         article.parse()
+        if not article.text or len(article.text) < 200:
+            # If the article content is too short, it might not be useful
+            return "Error: Article content is too short or unavailable."
         return article.text
     except Exception as e:
         return f"Error scraping the news: {e}"
@@ -47,7 +53,14 @@ def scrape_news(url):
 # Function to summarize news
 def summarize_news(content):
     messages = [
-        {"role": "user", "content": f"Summarize this article into bullet points: {content}"}
+        {
+            "role": "user",
+            "content": (
+                "Please read the following article and summarize the key financial points, "
+                "highlighting any significant positive or negative information about the company's performance:\n\n"
+                f"{content}"
+            ),
+        }
     ]
     try:
         response = client.chat.completions.create(
@@ -62,8 +75,17 @@ def summarize_news(content):
 
 # Function to aggregate summaries
 def aggregate_summaries(summaries):
+    combined_summaries = "\n\n".join(summaries)
     messages = [
-        {"role": "user", "content": f"Combine these summaries into a comprehensive financial overview: {summaries}"}
+        {
+            "role": "user",
+            "content": (
+                "Based on the following summaries of recent news articles about the company, "
+                "provide an overall analysis of the company's current financial situation. "
+                "Highlight key trends and significant events:\n\n"
+                f"{combined_summaries}"
+            ),
+        }
     ]
     try:
         response = client.chat.completions.create(
@@ -82,19 +104,20 @@ st.subheader("Objective: Better Investment Decisions")
 st.write("""
 - Scrape the latest news about a given company
 - Summarize the news (list of bullet points: bad and good)
-- Suggest what investment decision to take (buy/sell)
+- Provide an overall analysis of the company's financial situation
 """)
 
-# Input field for company name
+# Input fields for company name and ticker symbol
 company_name = st.text_input("Enter the company name:")
+company_ticker = st.text_input("Enter the company ticker symbol:")
 
 if st.button("Analyze News"):
-    if company_name:
+    if company_name and company_ticker:
         st.info("Searching for financial news...")
-        articles = search_financial_news(company_name)
+        articles = search_financial_news(company_name, company_ticker)
 
         if not articles:
-            st.warning("No relevant articles found. Try another company name.")
+            st.warning("No relevant articles found. Try another company name or ticker symbol.")
         else:
             st.success(f"Found {len(articles)} articles. Processing the top 3.")
             summaries = []
@@ -103,6 +126,7 @@ if st.button("Analyze News"):
                 url = article["url"]
                 st.write(f"**Article {idx + 1}: {article['title']}**")
                 st.write(f"Source: {article['source']['name']}")
+                st.write(f"Published at: {article['publishedAt']}")
                 st.write(f"URL: {url}")
 
                 # Scrape the article content
@@ -124,12 +148,12 @@ if st.button("Analyze News"):
 
             # Aggregate summaries
             if summaries:
-                st.info("Creating a comprehensive summary...")
-                final_summary = aggregate_summaries(" ".join(summaries))
+                st.info("Creating a comprehensive analysis...")
+                final_summary = aggregate_summaries(summaries)
                 if "Error" in final_summary:
                     st.error(final_summary)
                 else:
-                    st.success("Comprehensive summary generated!")
-                    st.text_area("Final Summary", final_summary, height=200)
+                    st.success("Comprehensive analysis generated!")
+                    st.text_area("Final Analysis", final_summary, height=200)
     else:
-        st.error("Please enter a company name.")
+        st.error("Please enter both the company name and ticker symbol.")
