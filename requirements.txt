@@ -2,4 +2,10 @@ streamlit
 requests
 newspaper3k
 premai
+lxml
+beautifulsoup4
+cssselect
 nltk
+pillow
+tqdm
+feedparser
